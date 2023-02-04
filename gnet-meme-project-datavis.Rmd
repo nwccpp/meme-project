@@ -1,0 +1,434 @@
+---
+title: "data-visualization"
+author: "adl"
+date: "`r Sys.Date()`"
+output: github_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(dev = "jpeg",
+                      dpi = 500,
+                      echo = FALSE,
+                      cache = TRUE)
+knitr::opts_chunk$set(fig.width=12, fig.height=8)
+```
+
+### Supplementary Code for: GNET Year 3 Report
+
+#### Authors: Ayse D. Lokmanoglu, PhD; Mowafak Allaham; Rod M. Abhari; Chloe Morterson; and Esteban Villa-Turek
+
+Install the packages and libraries needed.
+
+```{r, warning=FALSE, message=FALSE}
+# install.packages(c("dplyr", "tidyverse", "ggplot2", "ggthemes", 
+#                    "scales", "lubridate", "readr")) # you only have to install packages once
+
+library(dplyr) # for data wrangling
+library(tidyverse) # for data wrangling
+library(ggplot2) # for visualizations
+library(ggthemes) # to make visualizations pretty
+library(scales) # for the x and y axis in graph
+library(lubridate) # to amend dates
+library(readr) # to import csv's
+```
+
+## Figure 3: Monthly Volume of Memes and Engagement with the Memes
+
+- Load the data file
+```{r, figure3-load-data}
+figure3_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/Monthly_Meme_and_Engagement.csv")
+
+mydata_eng_count_long <- read_csv(figure3_url)
+```
+
+- Create labels
+```{r, figure 3-labels}
+labels_volume_log <- c(
+  count_of_daily_memes = "Meme Volume",
+  count_of_daily_engagement = "Engagement Volume")
+```
+
+- Plot the graph
+```{r, figure-3-plot}
+ggplot(mydata_eng_count_long, 
+       aes(x=date_fig, y=sum)) + 
+  geom_col(aes(fill = Variable)) +
+  geom_smooth(method="auto", se=TRUE, fullrange=FALSE, level=0.99, color = c("#000000")) +
+  scale_fill_manual(values = c("#E69F00", "#56B4E9")) +
+  scale_x_date(date_breaks="1 month", date_labels = "%b-%Y") +
+  scale_y_continuous(trans='log10',
+                     labels=trans_format('log10', math_format(10^.x)))+
+  facet_wrap(~Variable, 
+             labeller = labeller(
+               Variable = labels_volume_log),
+             nrow=2,
+             scales = "free_y") +
+  labs(x=" ", 
+       y="Volume (log10)")+
+  theme_hc() +
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none", 
+        legend.box="vertical", 
+        legend.title = element_blank(),
+        legend.margin=margin(),
+        legend.key = element_rect(fill=NA), 
+        legend.background = element_rect(fill=NA),
+        legend.box.background = element_blank(),
+        strip.text.x = element_text(size = 14))
+```
+
+*Delete the variables* 
+```{r, echo = TRUE}
+rm(list = ls())
+```
+
+## Figure 4: Distribution of image counts per cluster 
+
+- Load the data file
+```{r, figure4-load-data}
+figure4_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/meme_distirbution_cluster.csv")
+
+meme_distribution_cluster <- read.csv(figure4_url)
+```
+
+- Plot the data
+```{r, figure4-plot}
+ggplot(meme_distribution_cluster, 
+       aes(x=cluster, y=total_number_of_memes_per_cluster)) + 
+  geom_point(aes(colour = cluster)) +
+  scale_fill_gradient() +
+  scale_x_continuous(breaks = seq(from = 0, to = 2667, by = 250)) + 
+  scale_y_continuous(trans='log10',
+                     labels=trans_format('log10', math_format(10^.x)))+ 
+  labs(x="Cluster Number", 
+       y="Image Count")+
+  theme_hc() +
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none", 
+        legend.box="vertical", 
+        legend.title = element_blank(),
+        legend.margin=margin(),
+        legend.key = element_rect(fill=NA), 
+        legend.background = element_rect(fill=NA),
+        legend.box.background = element_blank(),
+        strip.text.x = element_text(size = 14))
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 5: Top 25 Clusters Engagement and Meme Volume
+
+- Load the data file
+```{r, figure5-load-data}
+figure5_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/Top25Memes_Engagement.csv")
+
+mydata_top25 <- read_csv(figure5_url)
+```
+
+- Create labels
+```{r, figure 5-labels}
+labels_volume_log <- c(
+  total_number_of_memes_per_cluster = "Cluster Meme Volume",
+  count_of_daily_engagement = "Cluster Engagement Volume") 
+```
+
+```{r, figure5-plot}
+ggplot(mydata_top25, 
+       aes(x=reorder(cluster_labels, -sum), y=sum)) + 
+  geom_col(aes(fill = Variable)) +
+  scale_fill_manual(values =  c("#E69F00", "#56B4E9")) +
+  scale_y_continuous(label=comma, breaks=pretty_breaks())+  
+  facet_wrap(~Variable, 
+             labeller = labeller(
+               Variable = labels_volume_log),
+             nrow=2,
+             scales = "free_y") +
+  labs(x=" ", 
+       y="Volume")+
+  theme_hc()+
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none", 
+        legend.box="vertical", 
+        legend.title = element_blank(),
+        legend.margin=margin(),
+        legend.key = element_rect(fill=NA), 
+        legend.background = element_rect(fill=NA),
+        legend.box.background = element_blank(),
+        strip.text.x = element_text(size = 14))
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 6: Top 25 Most Engaged Clusters in 2020
+
+- Load the data file
+```{r, figure6-load-data}
+figure6_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/2020_Top25_Memes_Engagement.csv")
+
+mydata_2020_top25 <- read_csv(figure6_url)
+```
+
+- Create labels
+```{r, figure6-labels}
+labels_volume_log <- c(
+  total_number_of_memes_per_cluster = "2020 Cluster Meme Volume",
+  count_of_daily_engagement = "2020 Cluster Engagement Volume") 
+```
+
+-Plot graph
+```{r, figure6-plot}
+ggplot(mydata_2020_top25, 
+       aes(x=reorder(cluster_labels, -sum), y=sum)) + 
+  geom_col(aes(fill = Variable)) +
+  scale_fill_manual(values =  c("#E69F00", "#56B4E9")) +
+  scale_y_continuous(label=comma, breaks=pretty_breaks())+  
+  facet_wrap(~Variable, 
+             labeller = labeller(
+               Variable = labels_volume_log),
+             nrow=2,
+             scales = "free_y") +
+  labs(x=" ", 
+       y="Volume")+
+  theme_hc()+
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none", 
+        legend.box="vertical", 
+        legend.title = element_blank(),
+        legend.margin=margin(),
+        legend.key = element_rect(fill=NA), 
+        legend.background = element_rect(fill=NA),
+        legend.box.background = element_blank(),
+        strip.text.x = element_text(size = 14))
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 7: Top 25 Most Engaged Clusters in January 2021
+
+- Load the data file
+```{r, figure7-load-data}
+figure7_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/2021_Top25_Memes_Engagement.csv")
+
+mydata_2021_top25 <- read_csv(figure7_url)
+```
+
+- Create labels
+```{r, figure7-labels}
+labels_volume_log <- c(
+  total_number_of_memes_per_cluster = "2021 Cluster Meme Volume",
+  count_of_daily_engagement = "2021 Cluster Engagement Volume") 
+```
+
+- Plot the graph
+```{r, figure7-plot}
+ggplot(mydata_2021_top25, 
+       aes(x=reorder(cluster_labels, -sum), y=sum)) + 
+  geom_col(aes(fill = Variable)) +
+  scale_fill_manual(values =  c("#E69F00", "#56B4E9")) +
+  scale_y_continuous(label=comma, breaks=pretty_breaks())+  
+  facet_wrap(~Variable, 
+             labeller = labeller(
+               Variable = labels_volume_log),
+             nrow=2,
+             scales = "free_y") +
+  labs(x=" ", 
+       y="Volume")+
+  theme_hc()+
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none", 
+        legend.box="vertical", 
+        legend.title = element_blank(),
+        legend.margin=margin(),
+        legend.key = element_rect(fill=NA), 
+        legend.background = element_rect(fill=NA),
+        legend.box.background = element_blank(),
+        strip.text.x = element_text(size = 14))
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 8: Aggregate Monthly Engagement for Themes
+
+- Load the data file
+```{r, figure8-load-data}
+figure8_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/MonthlyTheme_Engagement.csv")
+
+mydata_theme <- read_csv(figure8_url)
+```
+
+- Plot graph
+```{r, figure8-plot}
+ggplot(mydata_theme, 
+       aes(x=date_fig, y=engagement,
+           shape = Theme,
+           group=Theme, 
+           colour=Theme)) + 
+  geom_line() +
+  geom_point(size=2) + 
+  scale_color_manual(values = c("#E69F00", "#000000", "#56B4E9", "#CC79A7")) +
+  scale_x_date(date_breaks="1 month", date_labels = "%b-%Y") +
+  scale_y_continuous(trans='log10',
+                     labels=trans_format('log10', math_format(10^.x))) +
+  labs(x=" ", 
+       y="Volume (log10)")+
+  theme_hc() +
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="bottom",
+        legend.text=element_text(size=12))
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 9: Monthly Aggregate Engagement by Intersectional Themes
+
+- Load data
+```{r, figure9-load-data}
+figure9_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/Monthly_INtersectional_Theme_Engagement.csv")
+
+mydata_theme_intersectional <- read_csv(figure9_url)
+```
+
+- Plot graph
+```{r, figure9-plot, fig.height = 12, fig.width = 10}
+ggplot(mydata_theme_intersectional, 
+       aes(x=date_fig, y=engagement, fill = theme_intersectional)) + 
+  geom_bar(position="stack", stat="identity") +
+  scale_x_date(date_breaks="3 month", date_labels = "%B-%Y",
+               date_minor_breaks = "1 month") +
+  scale_y_continuous(label=comma, breaks=pretty_breaks()) +
+  scale_fill_manual(values = c("#E69F00", "#000000", "#56B4E9", "#009E73",
+                                        "#F0E442", "#0072B2", "#D55E00",
+                                        "#CC79A7", '#800000', '#911eb4',
+                                        '#808000')) +
+  facet_wrap(~theme_intersectional, 
+             nrow=5, ncol = 3,
+             scales = "free_y") +
+  labs(x=" ", 
+       y="Volume")+
+  theme_hc() +
+  theme(axis.text.x=element_text(size=12, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none",
+        legend.text=element_text(size=12)) 
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 12: Top 10 Memes by Monthly Median Engagement
+
+- Load data
+```{r, figure12-load-data}
+figure12_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/Cluster_Medians.csv")
+mydata_cluster_medians <- read_csv(figure12_url)
+```
+
+- Plot graph
+```{r, figure12-plot}
+ggplot(mydata_cluster_medians, aes(x=reorder(cluster_labels, median_values), 
+                        y=median_values)) + 
+  geom_bar(position="stack", stat="identity", 
+           fill = '#9a6324') +
+  coord_flip() +
+  scale_y_continuous(breaks = seq(0, 250, by = 25)) +
+  labs(x=" ", 
+       y="Median Engagement")+
+  theme_hc() +
+  theme(axis.text.x=element_text(size=12, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none",
+        legend.text=element_text(size=12)) 
+```
+
+
+```{r}
+rm(list = ls())
+```
+
+## Figure 13: Meme Transition Rates Pre- and Post-Election
+
+- Load data
+```{r, figure13-load-data}
+figure13_url <- c("https://raw.githubusercontent.com/nwccpp/meme-project/main/Data/summary_reach_df.csv")
+
+mydata_summary_reach <- read_csv(figure13_url)
+```
+
+- Reorder the data, and create a column to label line graphs
+```{r, figure13-reorder-label-data}
+mydata_summary_reach <- mydata_summary_reach %>%
+  mutate(time_period = factor(mydata_summary_reach$time_period, 
+                              levels=c("pre", "post"),
+                              labels = c("Pre-Election", "Post-Election")), # reorder pre and post
+         label = if_else(time_period == 'Post-Election', as.character(attribute), NA_character_) # create a label for line graphs
+         )
+```
+
+- Plot graph
+```{r, figure13-plot}
+ggplot(mydata_summary_reach, 
+       aes(x=time_period , y=transmission_rate,
+           shape = attribute,
+           group=attribute, 
+           colour=attribute)) + 
+  geom_line() +
+  geom_point(size=5) + 
+  geom_text(data = subset(mydata_summary_reach, time_period == 'Post-Election'), 
+            aes(label = attribute, colour = attribute, x = Inf, y = transmission_rate), hjust = 2) +
+  scale_y_continuous(breaks = seq(0, 0.5, by = 0.05)) + 
+  scale_color_manual(values = c("#E69F00", "#000000", "#56B4E9", "#CC79A7")) +
+    labs(x=" ", 
+       y="Transmission Rate")+
+  theme_hc() +
+  theme(axis.text.x=element_text(size=14, angle=60, hjust=1, family="sans"),
+        axis.text.y=element_text(size=14, family="sans"),
+        axis.title.x=element_text(vjust=-0.25, size=14, family="sans"),
+        axis.title.y=element_text(vjust=-0.50, size=14, family="sans"),
+        legend.position="none",
+        legend.text=element_text(size=12))
+```
+
+```{r}
+rm(list = ls())
+```
