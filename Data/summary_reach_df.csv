@@ -1,0 +1,9 @@
+attribute,time_period,transmission_rate
+gender,post,0.315625
+gender,pre,0.074315949
+partisanship,post,0.4123359
+partisanship,pre,0.067995356
+race,post,0.428125
+race,pre,0.06584715
+violence,post,0.487722222
+violence,pre,0.048553965
